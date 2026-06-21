@@ -10,7 +10,7 @@ st.set_page_config(
 
 @st.cache_resource
 def load_model():
-    return tf.keras.models.load_model("mnist_cnn.h5")
+    return keras.models.load_model("mnist_cnn.h5")
 
 st.title("🔢 MNIST Digit Recognition")
 st.write("Upload gambar angka tulisan tangan (0-9)")
