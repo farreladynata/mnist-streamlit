@@ -1,39 +1,51 @@
 import streamlit as st
+import tensorflow as tf
 import numpy as np
 from PIL import Image
-import tensorflow as tf
 
-st.title("🔢 MNIST Digit Recognition")
+st.set_page_config(page_title="MNIST Digit Recognition")
 
 @st.cache_resource
 def load_model():
     return tf.keras.models.load_model("mnist_cnn.h5")
 
-try:
-    model = load_model()
+model = load_model()
 
-    uploaded_file = st.file_uploader(
-        "Upload gambar angka (png/jpg/jpeg)",
-        type=["png", "jpg", "jpeg"]
+st.title("🔢 MNIST Digit Recognition")
+st.write("Upload gambar angka tulisan tangan (0-9)")
+
+uploaded_file = st.file_uploader(
+    "Upload gambar",
+    type=["png", "jpg", "jpeg"]
+)
+
+if uploaded_file is not None:
+
+    image = Image.open(uploaded_file).convert("L")
+
+    st.image(
+        image,
+        caption="Gambar yang diupload",
+        width=200
     )
 
-    if uploaded_file is not None:
-        image = Image.open(uploaded_file).convert("L")
-        st.image(image, caption="Gambar diupload", width=200)
+    image = image.resize((28, 28))
 
-        image = image.resize((28, 28))
-        img = np.array(image)
+    img_array = np.array(image)
 
-        img = 255 - img
-        img = img / 255.0
-        img = img.reshape(1, 28, 28, 1)
+    # Membalik warna agar sesuai format MNIST
+    img_array = 255 - img_array
 
-        pred = model.predict(img)
-        digit = np.argmax(pred)
-        conf = float(np.max(pred) * 100)
+    # Normalisasi
+    img_array = img_array / 255.0
 
-        st.success(f"Prediksi: {digit}")
-        st.info(f"Confidence: {conf:.2f}%")
+    # Bentuk input CNN
+    img_array = img_array.reshape(1, 28, 28, 1)
 
-except Exception as e:
-    st.error(f"Model gagal dimuat: {e}")
+    prediction = model.predict(img_array)
+
+    digit = np.argmax(prediction)
+    confidence = np.max(prediction) * 100
+
+    st.success(f"Prediksi Angka: {digit}")
+    st.info(f"Confidence: {confidence:.2f}%")
